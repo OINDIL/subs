@@ -85,6 +85,7 @@ model Subscription {
   currency    String   @default("INR")
   billingDay  Int      // day of month (1-31)
   qrCodeUrl   String?  // Cloudinary URL
+  upiId       String?  // UPI ID for payment
   ownerId     String
   owner       user     @relation("OwnerSubscriptions", fields: [ownerId], references: [id], onDelete: Cascade)
   members     Member[]

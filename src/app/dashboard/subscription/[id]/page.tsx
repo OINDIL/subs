@@ -44,6 +44,7 @@ interface SubscriptionDetail {
   currency: string;
   billingDay: number;
   qrCodeUrl: string | null;
+  upiId: string | null;
   ownerId: string;
   owner: { id: string; name: string; email: string; image: string | null };
   members: Member[];
@@ -66,6 +67,7 @@ export default function SubscriptionDetailPage() {
     costPerMember: "",
     currency: "",
     billingDay: "",
+    upiId: "",
     qrCodeBase64: "",
   });
   const [saving, setSaving] = useState(false);
@@ -84,6 +86,7 @@ export default function SubscriptionDetailPage() {
           costPerMember: data.costPerMember.toString(),
           currency: data.currency,
           billingDay: data.billingDay.toString(),
+          upiId: data.upiId || "",
           qrCodeBase64: "",
         });
       } else if (res.status === 404) {
@@ -313,6 +316,19 @@ export default function SubscriptionDetailPage() {
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label>UPI ID (optional)</Label>
+                    <Input
+                      value={editForm.upiId}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          upiId: e.target.value,
+                        }))
+                      }
+                      placeholder="yourname@bank"
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <Label>Update QR Code</Label>
                     <Input
                       type="file"
@@ -375,7 +391,7 @@ export default function SubscriptionDetailPage() {
       <Tabs defaultValue="members">
         <TabsList className="mb-4">
           <TabsTrigger value="members">Members</TabsTrigger>
-          <TabsTrigger value="qrcode">QR Code</TabsTrigger>
+          <TabsTrigger value="payment">Payment Info</TabsTrigger>
         </TabsList>
 
         <TabsContent value="members">
@@ -493,9 +509,18 @@ export default function SubscriptionDetailPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="qrcode">
+        <TabsContent value="payment">
           <Card>
             <CardContent className="p-8 flex flex-col items-center justify-center">
+              {subscription.upiId && (
+                <div className="mb-8 text-center w-full max-w-sm">
+                  <p className="text-sm text-muted-foreground mb-2">UPI ID</p>
+                  <div className="bg-accent/30 border border-border rounded-lg py-3 px-4 flex items-center justify-center">
+                    <span className="font-mono text-lg font-semibold tracking-wide text-violet-400">{subscription.upiId}</span>
+                  </div>
+                </div>
+              )}
+
               {subscription.qrCodeUrl ? (
                 <>
                   <Image
@@ -503,7 +528,7 @@ export default function SubscriptionDetailPage() {
                     alt="Payment QR Code"
                     width={256}
                     height={256}
-                    className="rounded-xl border-2 border-border object-contain bg-white p-2"
+                    className="rounded-xl border-2 border-border object-contain bg-white p-2 shadow-sm"
                   />
                   <p className="text-sm text-muted-foreground mt-4">
                     This QR code is sent to members on billing day
@@ -517,7 +542,7 @@ export default function SubscriptionDetailPage() {
                   </p>
                   {isOwner && (
                     <Button variant="outline" onClick={() => setEditOpen(true)}>
-                      Upload QR Code
+                      {subscription.upiId ? "Upload QR Code too" : "Upload QR Code"}
                     </Button>
                   )}
                 </div>

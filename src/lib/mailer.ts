@@ -16,6 +16,7 @@ interface PaymentReminderOptions {
   currency: string;
   ownerName: string;
   qrCodeUrl?: string;
+  upiId?: string;
 }
 
 export async function sendPaymentReminder({
@@ -26,12 +27,14 @@ export async function sendPaymentReminder({
   currency,
   ownerName,
   qrCodeUrl,
+  upiId,
 }: PaymentReminderOptions) {
-  const qrSection = qrCodeUrl
+  const qrSection = qrCodeUrl || upiId
     ? `
       <div style="text-align: center; margin: 24px 0;">
-        <p style="color: #a0aec0; margin-bottom: 12px; font-size: 14px;">Scan the QR code below to make your payment:</p>
-        <img src="${qrCodeUrl}" alt="Payment QR Code" style="width: 250px; height: 250px; border-radius: 12px; border: 2px solid #4a5568;" />
+        <p style="color: #a0aec0; margin-bottom: 12px; font-size: 14px;">Use the UPI ID or scan the QR code below to make your payment:</p>
+        ${upiId ? `<p style="color: #f7fafc; font-size: 18px; font-weight: 600; margin-bottom: 16px; letter-spacing: 0.5px;">${upiId}</p>` : ''}
+        ${qrCodeUrl ? `<img src="${qrCodeUrl}" alt="Payment QR Code" style="width: 250px; height: 250px; border-radius: 12px; border: 2px solid #4a5568;" />` : ''}
       </div>
     `
     : "";

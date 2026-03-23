@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { BellRing } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -41,12 +42,14 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [triggering, setTriggering] = useState(false);
   const [form, setForm] = useState({
     name: "",
     description: "",
     costPerMember: "",
     currency: "INR",
     billingDay: "",
+    upiId: "",
     qrCodeBase64: "",
   });
 
@@ -63,6 +66,26 @@ export default function DashboardPage() {
       setLoading(false);
     }
   }, []);
+
+  const handleTriggerReminders = async () => {
+    setTriggering(true);
+    try {
+      const res = await fetch("/api/subscriptions/trigger-reminders", {
+        method: "POST",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        toast.success(`Triggered ${data.emailsSent} emails and ${data.notificationsCreated} notifications!`);
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to trigger reminders");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setTriggering(false);
+    }
+  };
 
   useEffect(() => {
     fetchSubscriptions();
@@ -101,6 +124,7 @@ export default function DashboardPage() {
           costPerMember: "",
           currency: "INR",
           billingDay: "",
+          upiId: "",
           qrCodeBase64: "",
         });
         fetchSubscriptions();
@@ -149,13 +173,24 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger
-            render={<Button className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 gap-2" />}
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="secondary" 
+            onClick={handleTriggerReminders} 
+            disabled={triggering}
+            className="hidden sm:flex shadow-sm"
           >
-            <span className="text-lg">+</span> New Subscription
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
+            <BellRing className="w-4 h-4 mr-2" />
+            {triggering ? "Sending..." : "Trigger Reminders"}
+          </Button>
+
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger
+              render={<Button className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 gap-2 shadow-sm" />}
+            >
+              <span className="text-lg">+</span> New Subscription
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Create Subscription</DialogTitle>
               <DialogDescription>
@@ -237,6 +272,17 @@ export default function DashboardPage() {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="sub-upi">UPI ID (optional)</Label>
+                <Input
+                  id="sub-upi"
+                  placeholder="e.g., yourname@bank"
+                  value={form.upiId}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, upiId: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="sub-qr">Payment QR Code (optional)</Label>
                 <Input
                   id="sub-qr"
@@ -281,6 +327,7 @@ export default function DashboardPage() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {subscriptions.length === 0 ? (

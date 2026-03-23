@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, description, costPerMember, currency, billingDay, qrCodeBase64 } = body;
+    const { name, description, costPerMember, currency, billingDay, qrCodeBase64, upiId } = body;
 
     if (!name || !costPerMember || !billingDay) {
       return NextResponse.json(
@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
         currency: currency || "INR",
         billingDay: parseInt(billingDay),
         qrCodeUrl: qrCodeUrl || null,
+        upiId: upiId || null,
         ownerId: session.user.id,
       },
     });
