@@ -149,6 +149,10 @@ export default function LandingPage() {
           <p className="text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} SubManager. All rights reserved.
           </p>
+          <div className="flex gap-4 text-sm text-muted-foreground">
+            <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
+            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+          </div>
         </div>
       </footer>
     </div>
