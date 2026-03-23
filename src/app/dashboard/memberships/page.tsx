@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
+import { Ticket } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -9,6 +10,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { CreditCard } from "lucide-react";
 import { toast } from "sonner";
 
 interface Membership {
@@ -23,6 +34,7 @@ interface Membership {
     currency: string;
     billingDay: number;
     qrCodeUrl: string | null;
+    upiId: string | null;
     owner: {
       id: string;
       name: string;
@@ -91,7 +103,7 @@ export default function MembershipsPage() {
       {memberships.length === 0 ? (
         <Card className="border-dashed border-2 border-border/50">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="text-5xl mb-4">🎫</div>
+            <Ticket className="w-16 h-16 mb-4 text-muted-foreground/30" />
             <h3 className="text-lg font-semibold mb-1">No memberships yet</h3>
             <p className="text-muted-foreground text-sm">
               When someone adds you to their subscription, it&apos;ll appear here
@@ -143,22 +155,55 @@ export default function MembershipsPage() {
                   </div>
                 </div>
 
-                {m.subscription.qrCodeUrl && (
-                  <div className="mt-4 p-4 rounded-lg bg-accent/30 border border-border/50">
-                    <p className="text-xs text-muted-foreground mb-3 text-center">
-                      Scan to pay
-                    </p>
-                    <div className="flex justify-center">
-                      <Image
-                        src={m.subscription.qrCodeUrl}
-                        alt="Payment QR Code"
-                        width={192}
-                        height={192}
-                        className="rounded-lg object-contain bg-white p-2"
-                      />
-                    </div>
-                  </div>
-                )}
+                <div className="mt-5 pt-4 border-t border-border/50 flex justify-end">
+                  <Dialog>
+                    <DialogTrigger render={<Button variant="outline" className="gap-2" />}>
+                      <CreditCard className="w-4 h-4" /> Pay Now
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Send Payment</DialogTitle>
+                        <DialogDescription>
+                          Amount Due: {m.subscription.currency === "INR" ? "₹" : m.subscription.currency}{m.subscription.costPerMember.toFixed(2)} to {m.subscription.owner.name}
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <div className="flex flex-col items-center justify-center py-4 space-y-6">
+                        {m.subscription.upiId && (
+                          <div className="text-center w-full">
+                            <p className="text-sm text-muted-foreground mb-2">UPI ID</p>
+                            <div className="bg-accent/30 border border-border rounded-lg py-3 px-4 flex items-center justify-center">
+                              <span className="font-mono text-lg font-semibold tracking-wide text-violet-400">
+                                {m.subscription.upiId}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        {m.subscription.qrCodeUrl && (
+                          <div className="text-center w-full">
+                            <p className="text-sm text-muted-foreground mb-3">Scan QR Code</p>
+                            <div className="flex justify-center">
+                              <Image
+                                src={m.subscription.qrCodeUrl}
+                                alt="Payment QR Code"
+                                width={200}
+                                height={200}
+                                className="rounded-xl border-2 border-border object-contain bg-white p-2 shadow-sm"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {!m.subscription.upiId && !m.subscription.qrCodeUrl && (
+                          <div className="text-center py-6 text-muted-foreground text-sm">
+                            No payment options were provided by the owner.
+                          </div>
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </CardContent>
             </Card>
           ))}

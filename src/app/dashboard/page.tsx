@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { BellRing } from "lucide-react";
+import { BellRing, PackageOpen, Plus } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -186,9 +186,9 @@ export default function DashboardPage() {
 
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger
-              render={<Button className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 gap-2 shadow-sm" />}
+              render={<Button className="bg-violet-600 hover:bg-violet-500 gap-2 shadow-sm text-white" />}
             >
-              <span className="text-lg">+</span> New Subscription
+              <Plus className="w-5 h-5" /> New Subscription
             </DialogTrigger>
             <DialogContent className="sm:max-w-lg">
             <DialogHeader>
@@ -333,7 +333,7 @@ export default function DashboardPage() {
       {subscriptions.length === 0 ? (
         <Card className="border-dashed border-2 border-border/50">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="text-5xl mb-4">📦</div>
+            <PackageOpen className="w-16 h-16 mb-4 text-muted-foreground/30" />
             <h3 className="text-lg font-semibold mb-1">No subscriptions yet</h3>
             <p className="text-muted-foreground text-sm mb-6">
               Create your first subscription to start managing payments

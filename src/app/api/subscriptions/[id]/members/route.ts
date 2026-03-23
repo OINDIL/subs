@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth-session";
+import { sendOnboardingEmail } from "@/lib/mailer";
 
 // GET /api/subscriptions/[id]/members
 export async function GET(
@@ -55,7 +56,13 @@ export async function POST(
 
     const subscription = await prisma.subscription.findUnique({
       where: { id },
-      select: { ownerId: true },
+      select: { 
+        name: true,
+        costPerMember: true,
+        currency: true,
+        ownerId: true,
+        owner: { select: { name: true } }
+      },
     });
 
     if (!subscription || subscription.ownerId !== session.user.id) {
@@ -100,6 +107,19 @@ export async function POST(
         userId: existingUser?.id || null,
       },
     });
+
+    try {
+      await sendOnboardingEmail({
+        to: email,
+        memberName: name,
+        subscriptionName: subscription.name,
+        amount: subscription.costPerMember,
+        currency: subscription.currency,
+        ownerName: subscription.owner.name,
+      });
+    } catch (emailError) {
+      console.error("Failed to send onboarding email:", emailError);
+    }
 
     return NextResponse.json(member, { status: 201 });
   } catch (error) {

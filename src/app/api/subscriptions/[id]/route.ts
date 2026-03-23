@@ -76,11 +76,21 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, description, costPerMember, currency, billingDay, qrCodeBase64 } = body;
+    const { name, description, costPerMember, currency, billingDay, qrCodeBase64, upiId, deleteQrCode } = body;
 
     let qrCodeUrl = existing.qrCodeUrl;
 
-    if (qrCodeBase64) {
+    if (deleteQrCode) {
+      if (existing.qrCodeUrl) {
+        try {
+          const publicId = getPublicIdFromUrl(existing.qrCodeUrl);
+          await deleteQRCode(publicId);
+        } catch {
+          // ignore delete error
+        }
+      }
+      qrCodeUrl = null;
+    } else if (qrCodeBase64) {
       // Delete old QR code if exists
       if (existing.qrCodeUrl) {
         try {
@@ -101,6 +111,7 @@ export async function PUT(
         ...(costPerMember && { costPerMember: parseFloat(costPerMember) }),
         ...(currency && { currency }),
         ...(billingDay && { billingDay: parseInt(billingDay) }),
+        ...(upiId !== undefined && { upiId: upiId === "" ? null : upiId }),
         qrCodeUrl,
       },
     });

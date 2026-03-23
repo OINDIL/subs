@@ -26,6 +26,19 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSession } from "@/lib/auth-client";
 import { toast } from "sonner";
+import {
+  Users,
+  Banknote,
+  CalendarDays,
+  BarChart3,
+  UserPlus,
+  CreditCard,
+  QrCode,
+  Pencil,
+  Trash2,
+  Plus,
+  ArrowLeft,
+} from "lucide-react";
 
 interface Member {
   id: string;
@@ -196,6 +209,56 @@ export default function SubscriptionDetailPage() {
     }
   };
 
+  const handleDeleteQrCode = async () => {
+    if (!confirm("Are you sure you want to delete the QR code?")) return;
+    
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/subscriptions/${params.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deleteQrCode: true }),
+      });
+
+      if (res.ok) {
+        toast.success("QR code deleted!");
+        fetchSubscription();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to delete QR code");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteUpi = async () => {
+    if (!confirm("Are you sure you want to delete the UPI ID?")) return;
+    
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/subscriptions/${params.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ upiId: "" }),
+      });
+
+      if (res.ok) {
+        toast.success("UPI ID deleted!");
+        fetchSubscription();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to delete UPI ID");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -226,7 +289,7 @@ export default function SubscriptionDetailPage() {
             className="mb-2 -ml-3 text-muted-foreground"
             onClick={() => router.back()}
           >
-            ← Back
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back
           </Button>
           <h1 className="text-2xl font-bold">{subscription.name}</h1>
           {subscription.description && (
@@ -360,27 +423,27 @@ export default function SubscriptionDetailPage() {
           {
             label: "Members",
             value: subscription.members.length,
-            icon: "👥",
+            icon: <Users className="w-6 h-6 text-violet-500" />,
           },
           {
             label: "Cost/Member",
             value: `${subscription.currency === "INR" ? "₹" : subscription.currency}${subscription.costPerMember.toFixed(2)}`,
-            icon: "💰",
+            icon: <Banknote className="w-6 h-6 text-emerald-500" />,
           },
           {
             label: "Billing Day",
             value: `${subscription.billingDay}${["st", "nd", "rd"][((subscription.billingDay % 100) - 20) % 10] || ["st", "nd", "rd"][subscription.billingDay % 100] || "th"}`,
-            icon: "📅",
+            icon: <CalendarDays className="w-6 h-6 text-blue-500" />,
           },
           {
             label: "Total Revenue",
             value: `${subscription.currency === "INR" ? "₹" : subscription.currency}${(subscription.costPerMember * subscription.members.length).toFixed(2)}`,
-            icon: "📊",
+            icon: <BarChart3 className="w-6 h-6 text-amber-500" />,
           },
         ].map((stat) => (
           <Card key={stat.label} className="border-border/50">
             <CardContent className="p-4">
-              <div className="text-2xl mb-1">{stat.icon}</div>
+              <div className="mb-2">{stat.icon}</div>
               <p className="text-xs text-muted-foreground">{stat.label}</p>
               <p className="text-lg font-semibold mt-0.5">{stat.value}</p>
             </CardContent>
@@ -401,7 +464,7 @@ export default function SubscriptionDetailPage() {
               {isOwner && (
                 <Dialog open={addMemberOpen} onOpenChange={setAddMemberOpen}>
                   <DialogTrigger render={<Button size="sm" variant="outline" className="gap-1" />}>
-                    <span>+</span> Add Member
+                    <Plus className="w-4 h-4" /> Add Member
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
@@ -461,7 +524,7 @@ export default function SubscriptionDetailPage() {
             <CardContent className="p-0">
               {subscription.members.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="text-4xl mb-3">👤</div>
+                  <UserPlus className="w-12 h-12 mb-4 text-muted-foreground/30" />
                   <p className="text-sm text-muted-foreground">
                     No members yet. Add your first member!
                   </p>
@@ -512,17 +575,43 @@ export default function SubscriptionDetailPage() {
         <TabsContent value="payment">
           <Card>
             <CardContent className="p-8 flex flex-col items-center justify-center">
-              {subscription.upiId && (
-                <div className="mb-8 text-center w-full max-w-sm">
+              {/* UPI ID Section */}
+              {subscription.upiId ? (
+                <div className="mb-8 text-center w-full max-w-sm flex flex-col items-center">
                   <p className="text-sm text-muted-foreground mb-2">UPI ID</p>
-                  <div className="bg-accent/30 border border-border rounded-lg py-3 px-4 flex items-center justify-center">
+                  <div className="bg-accent/30 border border-border rounded-lg py-3 px-4 flex items-center justify-center w-full mb-4">
                     <span className="font-mono text-lg font-semibold tracking-wide text-violet-400">{subscription.upiId}</span>
                   </div>
+                  {isOwner && (
+                    <div className="flex gap-3 mt-2">
+                      <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                        <Pencil className="w-4 h-4 mr-2" /> Edit UPI
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={handleDeleteUpi} disabled={saving}>
+                        <Trash2 className="w-4 h-4 mr-2" /> {saving ? "Deleting..." : "Delete UPI"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="mb-8 text-center w-full max-w-sm flex flex-col items-center">
+                  <CreditCard className="w-12 h-12 mb-4 text-muted-foreground/30" />
+                  <p className="text-sm text-muted-foreground mb-4">
+                    No UPI ID added yet
+                  </p>
+                  {isOwner && (
+                    <Button variant="outline" onClick={() => setEditOpen(true)}>
+                      Add UPI ID
+                    </Button>
+                  )}
                 </div>
               )}
 
+              <div className="w-full max-w-sm mb-8"><Separator /></div>
+
+              {/* QR Code Section */}
               {subscription.qrCodeUrl ? (
-                <>
+                <div className="flex flex-col items-center">
                   <Image
                     src={subscription.qrCodeUrl}
                     alt="Payment QR Code"
@@ -530,19 +619,29 @@ export default function SubscriptionDetailPage() {
                     height={256}
                     className="rounded-xl border-2 border-border object-contain bg-white p-2 shadow-sm"
                   />
-                  <p className="text-sm text-muted-foreground mt-4">
+                  <p className="text-sm text-muted-foreground mt-4 mb-4">
                     This QR code is sent to members on billing day
                   </p>
-                </>
+                  {isOwner && (
+                    <div className="flex gap-3">
+                      <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                        <Pencil className="w-4 h-4 mr-2" /> Edit QR
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={handleDeleteQrCode} disabled={saving}>
+                        <Trash2 className="w-4 h-4 mr-2" /> {saving ? "Deleting..." : "Delete QR"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
               ) : (
-                <div className="text-center py-8">
-                  <div className="text-4xl mb-3">📱</div>
+                <div className="text-center py-8 flex flex-col items-center">
+                  <QrCode className="w-12 h-12 mb-4 text-muted-foreground/30" />
                   <p className="text-sm text-muted-foreground mb-4">
                     No QR code uploaded yet
                   </p>
                   {isOwner && (
                     <Button variant="outline" onClick={() => setEditOpen(true)}>
-                      {subscription.upiId ? "Upload QR Code too" : "Upload QR Code"}
+                      Upload QR Code
                     </Button>
                   )}
                 </div>

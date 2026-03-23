@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { BellRing } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -105,7 +106,7 @@ export default function NotificationsPage() {
       {notifications.length === 0 ? (
         <Card className="border-dashed border-2 border-border/50">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="text-5xl mb-4">🔔</div>
+            <BellRing className="w-16 h-16 mb-4 text-muted-foreground/30" />
             <h3 className="text-lg font-semibold mb-1">No notifications</h3>
             <p className="text-muted-foreground text-sm">
               You&apos;ll receive reminders here when payments are due
